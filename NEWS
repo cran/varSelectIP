@@ -1,0 +1,64 @@
+*************
+varSelectIP Version 0.1-4
+*************
+- First built Nov 26 2010
+- Next built Jan 23 2011
+- makes the following changes (from Luis' comments)
+  - computes the actual Bayes Factor 
+  - orders the observations when doing probit model (OK)
+  - set default for covariates.retain (OK)
+  - explain Value section more clearly (OK)
+  - reference paper on my website for now (to change to GC website later) (OK)
+  - example (OK)
+
+*************
+varSelectIP Version 0.1-3
+*************
+- First built Nov 20 2010
+- Logs ALL the models that are visited.
+
+*************
+varSelectIP Version 0.1-1
+*************
+- First built Nov 06 2010
+- Uses parallel computation if slaves are present
+- Uses only mvtnorm method, not importance sampling
+
+*************
+varSelectIP Version 0.1-0
+*************
+- First built Nov 02 2010
+- Gives the user the option of using either mvtnorm or importance sampling to 
+  compute the Bayes Factor
+
+*** Nov 02 2010: IPVarSel has been deprecated. We now turn to varSelectIP ***
+
+*************
+IPVarSel Version 0.2-1
+*************
+- First built Sep 22 2010
+- Some duplication removed from NextModel() function.
+- Checking added to see if proposed.model == current.model
+
+*************
+IPVarSel Version 0.2-0
+*************
+- First built Sep 21 2010
+- added functionality for probit model. Extremely slow. Need to 
+  remove code where score for a model has been computed before!
+
+*************
+IPVarSel Version 0.1-0
+*************
+
+- First built Sep 17 2010
+- This is a skeleton package. Has to be tested, timed, profiled and 
+  optimized.
+
+TODO:
+(1) A lot of computations are being repeated. Please weed them out
+(2) Do not have to update table if the model did not change.
+(3) How about storing BF for models that have been visited before?
+(4) Compare to S.A??
+(5) Save every how many iterations..
+(6) Save to output file
