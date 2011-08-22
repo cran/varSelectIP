@@ -9,6 +9,9 @@ varSelectIP <- function(response, covariates.retain=NULL, covariates.test,
   p <- ncol(covariates.test)
   n.obs <- nrow(covariates.test)
 
+  if(keep > 2^q) 
+    stop("The number of models to be retained is less than keep.\n")
+
   if(is.null(covariates.retain))
     num.covariates.retain <- 0
   else {
@@ -47,8 +50,8 @@ varSelectIP <- function(response, covariates.retain=NULL, covariates.test,
 
   # Next line gives a matrix of "NA" values. The reason we have 2*nsim, is 
   # because at each step, we test TWO candidates, so both are stored.
-  models.visited <- matrix(nrow=2*nsim, ncol=2, dimnames=list(NULL, 
-    c("modelId", "BF")))
+  cur.table <- matrix(nrow=keep, ncol=p+1, dimnames=list(NULL, 
+    c(rep("", p), "BF")))
 
   # If parallel=TRUE, check if Rmpi is installed.
   if (parallel) {
@@ -67,22 +70,26 @@ varSelectIP <- function(response, covariates.retain=NULL, covariates.test,
     mpi.bcast.cmd(library(mvtnorm))
   }
 
-  # Obtain starting point
-  repeat{
-    current.model <- sample(0:1, size = p, replace=TRUE)
-    if (sum(current.model) <= q)
-      break
+  # Initialize table
+  for(i in 1:keep) {
+    current.model <- convert2base2(i, p)
+    if(model.type == "probit") {
+      current.model.score <- BayesFactorProbit(response, covariates.retain,
+        covariates.test, current.model, parallel)
+    }
+    else {
+      current.model.score <- BayesFactorLinReg(response, covariates.retain,
+        covariates.test, current.model)
+    }
+    cur.table[i,] <- c(current.model, current.model.score)
   }
-  if(model.type == "probit") {
-    current.model.score <- BayesFactorProbit(response, covariates.retain,
-      covariates.test, current.model, parallel)
-  }
-  else {
-    current.model.score <- BayesFactorLinReg(response, covariates.retain,
-      covariates.test, current.model)
-  }
-  current.gamma <- current.model
+  cur.table <- cur.table[order(cur.table[,"BF"], decreasing=TRUE),]
+  # Table initialized
+
+  max.index <- which.max(cur.table[,"BF"])
+  current.gamma <- cur.table[max.index, -(p+1)]
   current.active <- current.model
+
   if (sum(current.active) < q) {
     need.to.set <- q - sum(current.active)
     current.active[current.active!=1][1:need.to.set] <- 1
@@ -96,25 +103,26 @@ varSelectIP <- function(response, covariates.retain=NULL, covariates.test,
   for (i in 1:nsim) {
     NewState <- NextModel(response, covariates.retain, covariates.test, 
       current.gamma, current.active, current.model, current.model.score, 
-      a, model.type, parallel, models.visited)
+      a, model.type, parallel, cur.table)
     current.gamma <- NewState[[1]]
     current.active <- NewState[[2]]
     current.model <- NewState[[3]]
     current.model.score <- NewState[[4]]
-    models.visited <- NewState[[5]]
+    cur.table <- NewState[[5]]
   
-    if (i %% save.every == 0)
-      current.table <- writeToFile(models.visited, fname=out.fname, 
-        keep=keep, p=p, m0.z)
+    if (i %% save.every == 0) {
+      cur.table <- cur.table[order(cur.table[,"BF"], decreasing=TRUE),]
+      write.csv(cur.table, file=out.fname, quote=FALSE)
+    }
     cat("Finished", i, "simulations", "\n", sep=" ")
   }
 
-  final.table <- writeToFile(models.visited, fname=out.fname, keep=keep, 
-                             p=p, m0.z)
+  cur.table <- cur.table[order(cur.table[,"BF"], decreasing=TRUE),]
+  write.csv(cur.table, file=out.fname, quote=FALSE)
 
   if(parallel)
     mpi.close.Rslaves(dellog=FALSE)
-   
+  
 #  models.visited
-  return(final.table)
+  return(cur.table)
 }

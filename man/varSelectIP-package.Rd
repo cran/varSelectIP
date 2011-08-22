@@ -14,8 +14,8 @@ number of covariates smaller than the sample size.
 \tabular{ll}{
 Package: \tab varSelectIP\cr
 Type: \tab Package\cr
-Version: \tab 0.1\cr
-Date: \tab 2010-11-26\cr
+Version: \tab 0.1-5\cr
+Date: \tab 2011-08-22\cr
 License: \tab GPL (>=2)\cr
 LazyLoad: \tab yes\cr
 }

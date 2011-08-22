@@ -1,0 +1,14 @@
+c982ccc7825fa407c86396ff10947d05 *DESCRIPTION
+a3bd17bb136787b0ee067e8858b6bcca *NAMESPACE
+e7c8afa5bcc7733ea74ce2c752d43002 *NEWS
+2716d4cf3eb4e02e4055c048642ed39f *R/BayesFactorLinReg.R
+b77f1db3a698479c6e8b92dd782d93d1 *R/BayesFactorProbit.R
+2413e53030308e56cb1d188b42a0bed6 *R/NextModel.R
+9805b3555d574121d212625ba42314ae *R/convert2base10.R
+bcd0045256a7aea795bfeedb8e233290 *R/convert2base2.R
+3ceee5df917fa5810b175411758cb678 *R/m0.R
+ff55ea41d028ba389196e1dfdcd1c411 *R/updateTable.R
+cfae7c2f9e196748c3210559f0782d14 *R/varSelectIP.R
+65c308236468bacc202fb4b276b7eda7 *R/writeToFile.R
+170b44d9fec5d14fc59644b13bf46ec1 *man/varSelectIP-package.Rd
+347b094b662e3f1fc4e9f17cc68dcc67 *man/varSelectIP.Rd

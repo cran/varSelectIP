@@ -6,13 +6,13 @@
 NextModel <- function(response, covariates.retain=NULL, covariates.test, 
                       current.gamma, current.active, current.model, 
                       current.model.score, a=0.2, model.type, parallel, 
-                      models.visited){
+                      cur.table){
 
   p <- length(current.model)
 
   # Step 1 from page 12 of the probit paper.
   MetHastUpdateGamma <- function(current.gamma, current.active, current.model, 
-                                 current.model.score, models.visited){
+                                 current.model.score, cur.table){
     # Generate proposal
     if (runif(1) < a) {
       proposed.gamma <- current.gamma
@@ -34,24 +34,15 @@ NextModel <- function(response, covariates.retain=NULL, covariates.test,
       proposed.model.score <- current.model.score
     }
     else {
-      proposed.model.base10 <- convert2base10(proposed.model)
-      tmp <- match(proposed.model.base10, models.visited[,"modelId"])
-      if(!is.na(tmp)) {
-        proposed.model.score <- models.visited[tmp, "BF"]
-        # cat("Skipped!\n")
+      if (model.type == "probit") {
+        proposed.model.score <- BayesFactorProbit(response, 
+          covariates.retain, covariates.test, proposed.model, parallel)
       }
       else {
-        if (model.type == "probit") {
-          proposed.model.score <- BayesFactorProbit(response, 
-            covariates.retain, covariates.test, proposed.model, parallel)
-        }
-        else {
-          proposed.model.score <- BayesFactorLinReg(response, 
-            covariates.retain, covariates.test, proposed.model)
-        }
+        proposed.model.score <- BayesFactorLinReg(response, 
+          covariates.retain, covariates.test, proposed.model)
       }
-      models.visited[min(which(is.na(models.visited[,"modelId"]))), ] <- 
-        c(convert2base10(proposed.model), proposed.model.score)
+      cur.table <- updateTable(cur.table, proposed.model, proposed.model.score)
 
       alpha01 <- proposed.model.score/current.model.score
     }
@@ -62,13 +53,12 @@ NextModel <- function(response, covariates.retain=NULL, covariates.test,
       current.model.score <- proposed.model.score
     }
 
-    return(list(current.gamma, current.model, current.model.score, 
-      models.visited))
+    return(list(current.gamma, current.model, current.model.score, cur.table))
   }
 
   # Step 2 from page 13 of the probit paper
   MetHastUpdateModel <- function(current.gamma, current.active, current.model, 
-                                 current.model.score, models.visited){
+                                 current.model.score, cur.table){
     index.from.A <- sample(which(current.active == 1), size=1)
     index.from.NOT.A <- sample(which(current.active == 0), size=1)
 
@@ -85,24 +75,15 @@ NextModel <- function(response, covariates.retain=NULL, covariates.test,
       proposed.model.score <- current.model.score
     }
     else {
-      proposed.model.base10 <- convert2base10(proposed.model)
-      tmp <- match(proposed.model.base10, models.visited[,"modelId"])
-      if(!is.na(tmp)) { # If model has been visited before
-        proposed.model.score <- models.visited[tmp, "BF"]
-        # cat("Skipped!\n")
+      if (model.type == "probit") {
+        proposed.model.score <- BayesFactorProbit(response, 
+          covariates.retain, covariates.test, proposed.model, parallel)
       }
       else {
-        if (model.type == "probit") {
-          proposed.model.score <- BayesFactorProbit(response, 
-            covariates.retain, covariates.test, proposed.model, parallel)
-        }
-        else {
-          proposed.model.score <- BayesFactorLinReg(response, 
-            covariates.retain, covariates.test, proposed.model)
-        }
+        proposed.model.score <- BayesFactorLinReg(response, 
+          covariates.retain, covariates.test, proposed.model)
       }
-      models.visited[min(which(is.na(models.visited[,"modelId"]))), ] <- 
-        c(convert2base10(proposed.model), proposed.model.score)
+      cur.table <- updateTable(cur.table, proposed.model, proposed.model.score) 
 
       alpha02 <- proposed.model.score/current.model.score
     }
@@ -114,24 +95,24 @@ NextModel <- function(response, covariates.retain=NULL, covariates.test,
     }
 
     return(list(current.active, current.model, current.model.score, 
-      models.visited))
+      cur.table))
   }
 
   updated.gamma.model <- MetHastUpdateGamma(current.gamma, current.active, 
-    current.model, current.model.score, models.visited)
+    current.model, current.model.score, cur.table)
   current.gamma <- updated.gamma.model[[1]]
   current.model <- updated.gamma.model[[2]]
   current.model.score <- updated.gamma.model[[3]]
-  models.visited <- updated.gamma.model[[4]]
+  cur.table <- updated.gamma.model[[4]]
 
   updated.active.model <- MetHastUpdateModel(current.gamma, current.active, 
-    current.model, current.model.score, models.visited)
+    current.model, current.model.score, cur.table)
   current.active <- updated.active.model[[1]]
   current.model <- updated.active.model[[2]]
   current.model.score <- updated.active.model[[3]]
-  models.visited <- updated.active.model[[4]]
+  cur.table <- updated.active.model[[4]]
 
   return(list(current.gamma, current.active, current.model, 
-    current.model.score, models.visited))
+    current.model.score, cur.table))
 }
 ########################################################

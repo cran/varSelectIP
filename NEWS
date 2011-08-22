@@ -1,4 +1,16 @@
 *************
+varSelectIP Version 0.1-5
+*************
+- First built Aug 23 2011
+- changes the way that the table of models is initialized and updated.
+- Suppose that 4 models are to be kept, then the initial models will be 
+  0001
+  0010
+  0011
+  0100
+- Each time a model's BF is computed, this table is updated.
+
+*************
 varSelectIP Version 0.1-4
 *************
 - First built Nov 26 2010
