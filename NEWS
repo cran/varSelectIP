@@ -1,4 +1,11 @@
 *************
+varSelectIP Version 0.2-1
+*************
+-First Built October 28 2013
+-Adds a function varSelectOBayeslinear for analysis of linear models using mixtures of g priors, which provides posterior credible sets, if desired
+it also produces credible set under the selected model and model uncertainty.
+-parallelization has been removed from the function varSelectIP due to the inability to depend on Rmpi 
+*************
 varSelectIP Version 0.1-5
 *************
 - First built Aug 23 2011

@@ -1,5 +1,5 @@
 BayesFactorProbit <- function(Z, covariates.retain=NULL, covariates.test, 
-                              current.model, parallel=FALSE){
+                              current.model){
 
   #############################################################################
   marginalZ.serial <- function() {
@@ -26,36 +26,6 @@ BayesFactorProbit <- function(Z, covariates.retain=NULL, covariates.test,
       return(output * interval.length)
   }
   #############################################################################
-  marginalZ.parallel <- function() {
-    Sigma.j <- diag(nn) + 2 * nn/k * H
-    lower <- c(rep(-Inf, n0), rep(0, n1))
-    upper <- c(rep(0, n0), rep(Inf, n1))
-
-    del <- rep(0, times=nn)
-    corrMat <- cov2cor(Sigma.j)
-
-    interval.length <- 0.4
-    MLE.alpha <- qnorm(mean(Z))
-    alphas <- as.matrix(seq(MLE.alpha - 6, MLE.alpha + 6, by=interval.length))
-
-    computeBF <- function(alpha.tmp) {
-      lower.tmp <- (lower - alpha.tmp)/sqrt(diag(Sigma.j))
-      upper.tmp <- (upper - alpha.tmp)/sqrt(diag(Sigma.j))
-      pmvt(lower=lower.tmp, upper=upper.tmp, df=0, corr=corrMat, delta=del,
-           abseps=1e-35, algorithm=GenzBretz())[1]
-    }
-
-    mpi.bcast.Robj2slave(lower)
-    mpi.bcast.Robj2slave(upper)
-    mpi.bcast.Robj2slave(corrMat)
-    mpi.bcast.Robj2slave(del)
-    mpi.bcast.Robj2slave(Sigma.j)
-    mpi.bcast.Robj2slave(alphas)
-    mpi.bcast.Robj2slave(computeBF)
-    output <- sum(mpi.parApply(alphas, 1, computeBF))
-
-    return(output * interval.length)
-  }
   #############################################################################
 
   if(is.null(covariates.retain) & (sum(current.model) == 0)) {
@@ -75,9 +45,6 @@ BayesFactorProbit <- function(Z, covariates.retain=NULL, covariates.test,
   # total number of covariates (including intercept)
   k <- ncol(Xtmp)  
  
-  if (parallel)
-    output <- marginalZ.parallel()
-  else 
     output <- marginalZ.serial()
   
   return(output)

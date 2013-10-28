@@ -5,7 +5,7 @@
 
 NextModel <- function(response, covariates.retain=NULL, covariates.test, 
                       current.gamma, current.active, current.model, 
-                      current.model.score, a=0.2, model.type, parallel, 
+                      current.model.score, a=0.2, model.type, 
                       cur.table){
 
   p <- length(current.model)
@@ -36,7 +36,7 @@ NextModel <- function(response, covariates.retain=NULL, covariates.test,
     else {
       if (model.type == "probit") {
         proposed.model.score <- BayesFactorProbit(response, 
-          covariates.retain, covariates.test, proposed.model, parallel)
+          covariates.retain, covariates.test, proposed.model)
       }
       else {
         proposed.model.score <- BayesFactorLinReg(response, 
@@ -77,7 +77,7 @@ NextModel <- function(response, covariates.retain=NULL, covariates.test,
     else {
       if (model.type == "probit") {
         proposed.model.score <- BayesFactorProbit(response, 
-          covariates.retain, covariates.test, proposed.model, parallel)
+          covariates.retain, covariates.test, proposed.model)
       }
       else {
         proposed.model.score <- BayesFactorLinReg(response, 

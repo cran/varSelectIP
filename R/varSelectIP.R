@@ -3,13 +3,16 @@
 #############################################################################
 varSelectIP <- function(response, covariates.retain=NULL, covariates.test, 
                      nsim, keep, q, a=0.2, model.type=c("probit", "reg"),
-                     save.every=50, out.fname="models.csv",
-                     parallel=FALSE, interactive=TRUE, nproc=2) {
+                     save.every=50, out.fname="models.csv") {
  
   p <- ncol(covariates.test)
   n.obs <- nrow(covariates.test)
-
-  if(keep > 2^q) 
+num.models<-function(q,K){
+	binom<-function(k){exp(-lbeta(K+1-k,k+1)-log(K+1))}
+	vbinom<-Vectorize(binom,vectorize.args="k")
+	as.integer(round(sum(vbinom(0:q))))
+}
+  if(keep > num.models(q,p)) 
     stop("The number of models to be retained is less than keep.\n")
 
   if(is.null(covariates.retain))
@@ -53,29 +56,13 @@ varSelectIP <- function(response, covariates.retain=NULL, covariates.test,
   cur.table <- matrix(nrow=keep, ncol=p+1, dimnames=list(NULL, 
     c(rep("", p), "BF")))
 
-  # If parallel=TRUE, check if Rmpi is installed.
-  if (parallel) {
-    if (!("Rmpi" %in% installed.packages()[,1])) 
-      stop("Rmpi is not installed - no parallel processing possible!\n")
-    if (interactive) {
-      # Check if Rmpi can be loaded properly
-      rmpiLoaded <- require(Rmpi)
-      if (rmpiLoaded) {
-        mpi.spawn.Rslaves(nslaves=nproc)
-      }
-      else
-        stop("Rmpi could not be loaded properly! Please load it before 
-              calling varSelectIP().\n")
-    }
-    mpi.bcast.cmd(library(mvtnorm))
-  }
 
   # Initialize table
   for(i in 1:keep) {
     current.model <- convert2base2(i, p)
     if(model.type == "probit") {
       current.model.score <- BayesFactorProbit(response, covariates.retain,
-        covariates.test, current.model, parallel)
+        covariates.test, current.model)
     }
     else {
       current.model.score <- BayesFactorLinReg(response, covariates.retain,
@@ -103,7 +90,7 @@ varSelectIP <- function(response, covariates.retain=NULL, covariates.test,
   for (i in 1:nsim) {
     NewState <- NextModel(response, covariates.retain, covariates.test, 
       current.gamma, current.active, current.model, current.model.score, 
-      a, model.type, parallel, cur.table)
+      a, model.type, cur.table)
     current.gamma <- NewState[[1]]
     current.active <- NewState[[2]]
     current.model <- NewState[[3]]
@@ -120,8 +107,6 @@ varSelectIP <- function(response, covariates.retain=NULL, covariates.test,
   cur.table <- cur.table[order(cur.table[,"BF"], decreasing=TRUE),]
   write.csv(cur.table, file=out.fname, quote=FALSE)
 
-  if(parallel)
-    mpi.close.Rslaves(dellog=FALSE)
   
 #  models.visited
   return(cur.table)

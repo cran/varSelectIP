@@ -13,8 +13,7 @@ please refer to the papers listed below.
 \usage{
 varSelectIP(response, covariates.retain = NULL, covariates.test, nsim, 
             keep, q, a = 0.2, model.type = c("probit", "reg"), 
-            save.every = 50, out.fname = "models.csv", parallel = FALSE, 
-            interactive = TRUE, nproc = 2)
+            save.every = 50, out.fname = "models.csv")
 }
 \arguments{
   \item{response}{
@@ -55,23 +54,6 @@ varSelectIP(response, covariates.retain = NULL, covariates.test, nsim,
   \item{out.fname}{
     The name of the .csv file to save models to.
 }
-  \item{parallel}{
-    A logical variable, instructing the package to carry out the bottleneck 
-    step on parallel processors.
-}
-  \item{interactive}{
-    Another logical variable, to instruct the package that parallel processing 
-    is being carried out interactively. If FALSE, i.e. PBS or some other 
-    batch scheduler is being used, then .Rprofile should be in the current 
-    working directory. This argument is ignored if parallel is equal to FALSE.
-    See \url{http://www.stat.ufl.edu/~viknesh} for a detailed example on how 
-    to run the parallel version of this function.
-}
-  \item{nproc}{
-    The number of processors to use when parallel processing is done 
-    interactively. It is needed only when parallel and interactive are both 
-    TRUE.
-}
 }
 \value{
 A table containing the top models found is returned. Each row in the table 
@@ -93,7 +75,7 @@ against the intercept-only model.
 \author{
 Gopal, V. and Novelo, L. L. and Casella, G.
 
-Maintainer: Gopal, V. <viknesh@stat.ufl.edu>
+Maintainer: Vik Gopal <viknesh.gopal@gmail.com>
 }
 \examples{
 n <- 20 # number of observations
@@ -116,13 +98,14 @@ z <- c(rep(0,n0),rep(1,n1))
 mydata <- cbind(z, y, age, x)
 colnames(mydata)<-c("z", "y", "age", paste("GE",1:p,sep=""))
 
-# Probit regression function call:
-varSelectIP(a=0.2, keep=2, covariates.retain=mydata[,3], model.type="probit", 
-            q=5, covariates.test=mydata[,4:9], response=mydata[,1], nsim=2)
-
 # Linear regression function call:
-varSelectIP(a=0.2, keep=2, covariates.retain=mydata[,3], model.type="reg", 
+varSelectIP(a=0.2, keep=32, covariates.retain=mydata[,3], model.type="reg", 
             q=5, covariates.test=mydata[,4:9], response=mydata[,2], nsim=25)
+
+##NOT RUN
+# Probit regression function call:
+#varSelectIP(a=0.2, keep=2, covariates.retain=mydata[,3], model.type="probit", 
+#           q=3, covariates.test=mydata[,4:7], response=mydata[,1], nsim=2)
 }
 \keyword{ models }
 \keyword{ htest }
